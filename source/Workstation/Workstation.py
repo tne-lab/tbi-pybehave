@@ -265,7 +265,9 @@ class Workstation:
         """
         Master event loop for all Tasks. Handles Task logic and Task Events.
         """
+
         while not self.stopping:
+            st = time.perf_counter()
             events = pygame.event.get()  # Get mouse/keyboard events
             task_keys = list(self.tasks.keys())
             for key in task_keys:  # For each Task
@@ -279,6 +281,7 @@ class Workstation:
                             self.wsg.chambers[key].stop()
                 elif not self.thread_events[key][2].is_set():
                     self.thread_events[key][2].set()
+            print(time.perf_counter()-st)
 
     def gui_loop(self) -> None:
         last_frame = time.perf_counter()

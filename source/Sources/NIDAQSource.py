@@ -1,5 +1,5 @@
 import nidaqmx
-from nidaqmx import system, stream_writers
+from nidaqmx import system, stream_writers, stream_readers
 from nidaqmx.constants import (LineGrouping)
 import numpy as np
 
@@ -57,13 +57,15 @@ class NIDAQSource(Source):
             if component.get_type() == Component.Type.DIGITAL_OUTPUT:
                 task = nidaqmx.Task()
                 task.do_channels.add_do_chan(self.dev + component.address, line_grouping=LineGrouping.CHAN_FOR_ALL_LINES)
-                task.start()
                 self.tasks[component.id] = task
+                self.streams[component.id] = stream_writers.DigitalSingleChannelWriter(task.out_stream)
+                task.start()
             elif component.get_type() == Component.Type.DIGITAL_INPUT:
                 task = nidaqmx.Task()
                 task.di_channels.add_di_chan(self.dev + component.address, line_grouping=LineGrouping.CHAN_FOR_ALL_LINES)
-                task.start()
                 self.tasks[component.id] = task
+                self.streams[component.id] = stream_readers.DigitalSingleChannelReader(task.in_stream)
+                task.start()
             elif component.get_type() == Component.Type.ANALOG_OUTPUT:
                 if self.ao_task is None:
                     self.ao_task = nidaqmx.Task()
@@ -94,7 +96,7 @@ class NIDAQSource(Source):
         if self.available:
             # Do I need a stop here as well?
             if self.components[component_id].get_type() == Component.Type.DIGITAL_INPUT:
-                return self.tasks[component_id].read()
+                return self.streams[component_id].read_one_sample_one_line(0)
             elif self.components[component_id].get_type() == Component.Type.ANALOG_INPUT:
                 return self.streams[component_id].read_one_sample(0)
         else:
@@ -103,7 +105,7 @@ class NIDAQSource(Source):
     def write_component(self, component_id, msg):
         if self.available:
             if self.components[component_id].get_type() == Component.Type.DIGITAL_OUTPUT:
-                self.tasks[component_id].write(msg)
+                self.streams[component_id].write_one_sample_one_line(msg, 0)
             elif self.components[component_id].get_type() == Component.Type.ANALOG_OUTPUT:
                 output = np.zeros((len(self.ao_inds), msg.shape[1]))
                 output[self.ao_inds[component_id], :] = np.squeeze(msg)

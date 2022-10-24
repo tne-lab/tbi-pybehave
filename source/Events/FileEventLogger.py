@@ -43,6 +43,8 @@ class FileEventLogger(EventLogger):
         super(FileEventLogger, self).start()
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
+        if self.log_file is not None:
+            self.log_file.close()
         self.log_file = open(self.get_file_path(), "w")
 
     def close(self) -> None:
