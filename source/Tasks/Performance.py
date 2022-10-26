@@ -16,11 +16,13 @@ class Performance(Task):
     def get_components() -> dict[str, list[Type[Component]]]:
         return {
             "output": [Toggle],
-            "input": [BinaryInput]
+            "input": [BinaryInput],
+            "test": [BinaryInput]
         }
 
     def main_loop(self) -> None:
         active = self.input.check()
+        self.test.check()
         if active == BinaryInput.ENTERED:
             self.output.toggle(True)
         elif active == BinaryInput.EXIT:

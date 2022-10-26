@@ -281,7 +281,7 @@ class Workstation:
                             self.wsg.chambers[key].stop()
                 elif not self.thread_events[key][2].is_set():
                     self.thread_events[key][2].set()
-            print(time.perf_counter()-st)
+            # print(time.perf_counter()-st)
 
     def gui_loop(self) -> None:
         last_frame = time.perf_counter()
