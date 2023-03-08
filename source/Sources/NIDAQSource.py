@@ -110,7 +110,12 @@ class NIDAQSource(Source):
                 self.ao_task.timing.cfg_samp_clk_timing(self.components[component_id].sr,
                                                         sample_mode=nidaqmx.constants.AcquisitionType.FINITE,
                                                         samps_per_chan=msg.shape[1])
-                self.ao_stream.write_many_sample(np.squeeze(output))
+                out = np.squeeze(output)
+                if len(out.shape) == 1:
+                    out = out.reshape(-1, 1)
+                    self.ao_stream.write_many_sample(np.transpose(out))
+                else:
+                    self.ao_stream.write_many_sample(out)
                 self.ao_task.start()
 
     def is_available(self):
